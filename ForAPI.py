@@ -2,88 +2,140 @@ from abc import ABC, abstractmethod
 import requests
 import json
 import os
+from GeneralBase import GeneralBase
 
 class ForAPI(ABC):
     '''абстрактный класс для API'''
-    pass
+
+    @classmethod
+    def __init__(cls, url_site):
+        cls.url_site = url_site
+        cls.list_vacancies = []
 
 class ForAPI_hh(ForAPI):
     '''класс для API с сайта hh.ru'''
-    name_array = 'vacancies_hh'
-    def __init__(self, url_site='https://api.hh.ru/vacancies/'):
-        self.url_site = url_site
-        self.list_vacancies = []
-        # self.id = self.make_requests()
-        # self.name = self.make_requests()
-        # self.salary = self.make_requests()
-        # self.url = self.make_requests()
-        # self.requirement = self.make_requests()
-        # self.responsibility = self.make_requests()
+    @classmethod
+    def __init__(cls, url_site):
+        super().__init__(url_site)
+        #cls.url_site = url_site
+        cls.list_vacancies = []
+        cls.name_array = 'vacancies_hh'
 
-    def make_requests(self):
-        '''выполняем API запрос к сайту hh.ru, полученную информацию раскладываем в экземпляры класса'''
-        self.responce = requests.get(self.url_site)
-        print(self.responce.status_code)
-        #print(self.responce.text)
-        all_vacancies = json.loads(self.responce.text)
+    @classmethod
+    def make_requests(cls):
+        '''выполняем API запрос к сайту hh.ru, получаем массив данных'''
+        cls.responce = requests.get(cls.url_site)
+        print(cls.responce.status_code)
+        #print(cls.responce.text)
+        cls.all_vacancies = json.loads(cls.responce.text)
         #print(all_vacancies)
-        self.list_vacancies = []
-        for vacancy in all_vacancies['items']:
+        return cls.all_vacancies
+
+    @classmethod
+    def make_list_vacancies(cls):
+        '''из полученного массива данных формируем список словарей нужной структуры'''
+        cls.list_vacancies = []
+        for vacancy in cls.all_vacancies['items']:
             # print()
             # print(vacancy)
             temp_dict = vacancy
-            # print(temp_dict)
-            self.id = temp_dict['id']
-            self.name = temp_dict['name']
-            self.salary = temp_dict['salary']
-            self.url = temp_dict['url']
-            self.requirement = temp_dict['snippet']['requirement']
-            self.responsibility = temp_dict['snippet']['responsibility']
-            # print()
-            # print(self.responsibility)
-
+            #print(temp_dict)
+            id_item = temp_dict['id']
+            name = temp_dict['name']
+            salary = temp_dict['salary']
+            url = temp_dict['url']
+            if salary == None:
+                salary_from = 0
+                salary_to = 0
+                currency = 'RUR'
+                gross = False
+            else:
+                salary_from = temp_dict['salary']['from']
+                salary_to = temp_dict['salary']['to']
+                currency = temp_dict['salary']['currency']
+                gross = temp_dict['salary']['gross']
+                requirement = temp_dict['snippet']['requirement']
+                responsibility = temp_dict['snippet']['responsibility']
+            data = {'id':id_item, 'name':name, 'salary_from':salary_from, 'salary_to':salary_to, 'currency':currency,
+                    'gross':gross, 'url':url, 'requirement':requirement, 'responsibility':responsibility}
+            #print(data)
+            cls.list_vacancies.append(data)
+        #print('это список словарей cls.list_vacancies:')
+        #print(cls.list_vacancies)
+        return cls.list_vacancies
 
     def to_json(self):
-        '''Запись данных, полученных по API, в файл в формате JSON'''
-        data = [self.id, self.name, self.salary, self.url, self.requirement, self.responsibility]
+        '''Записываем, полученный список словарей, в файл в формате JSON'''
+        with open(self.name_array, 'w') as f:
+            f.truncate(0)                    # очистим файл перед записью массива вакансий
+        data = self.list_vacancies #???[self.id_item, self.name, self.salary, self.url, self.requirement, self.responsibility]
+        #print('это то, что записываем в json-файл:')
+        #print(data)
         with open(self.name_array, 'w') as f:
             json.dump(data, f)
+
 
 class ForAPI_superjob(ForAPI):
     '''класс для API с сайта superjob.ru'''
     api_key = os.getenv('API_KEY_superjob')
-    name_array = 'vacancies_superjob'
 
-    def __init__(self, url_site ='https://api.superjob.ru/2.0/vacancies/?t=4&count=10'):
-        self.url_site = url_site
-        self.list_vacancies = []
+    @classmethod
+    def __init__(cls, url_site):
+        super().__init__(url_site)
+        # cls.url_site = url_site
+        cls.list_vacancies = []
+        cls.name_array = 'vacancies_superjob'
 
-    def make_requests(self):
+    @classmethod
+    def make_requests(cls):
         '''выполняем API запрос к сайту superjob.ru, полученную информацию раскладываем в экземпляры класса'''
-        self.responce = requests.get(self.url_site, headers={'X-Api-App-Id': self.api_key})
-        print(self.responce.status_code)
-        print(self.responce.text)
-        all_vacancies = json.loads(self.responce.text)
-        # print(all_vacancies)
-        self.list_vacancies = []
-        for vacancy in all_vacancies['objects']:
-            print()
-            print(vacancy)
-            temp_dict = vacancy
-            # print(temp_dict)
-            self.id = temp_dict['id']
-            self.name = temp_dict['profession']
-            self.payment_from = temp_dict['payment_from']
-            self.payment_to = temp_dict['payment_to']
-            self.url = temp_dict['client']['link']
-            self.requirement = temp_dict['candidat']
-            # self.requirement = temp_dict['snippet']['requirement']
-            # self.responsibility = temp_dict['snippet']['responsibility']
+        cls.responce = requests.get(cls.url_site, headers={'X-Api-App-Id': cls.api_key})
+        print(cls.responce.status_code)
+        #print(cls.responce.text)
+        cls.all_vacancies = json.loads(cls.responce.text)
+        #print(cls.all_vacancies)
+        return cls.all_vacancies
+
+    @classmethod
+    def make_list_vacancies(cls):
+        '''из полученного массива данных формируем список словарей нужной структуры'''
+        cls.list_vacancies = []
+        #print(cls.all_vacancies)
+        for vacancy in cls.all_vacancies['objects']:
             # print()
-            print(self.requirement)
+            # print(vacancy)
+            temp_dict = vacancy
+            #print(temp_dict)
+            id_item = temp_dict['id']
+            name = temp_dict['profession']
+            # salary = temp_dict['salary']
+            url = temp_dict['link']
+            # if salary == None:
+            #     salary_from = 0
+            #     salary_to = 0
+            #     currency = 'RUR'
+            #     gross = False
+            # else:
+            salary_from = temp_dict['payment_from']
+            salary_to = temp_dict['payment_to']
+            currency = temp_dict['currency']
+            gross = True
+            requirement = temp_dict['candidat']
+            #responsibility = temp_dict['snippet']['responsibility']
+            data = {'id': id_item, 'name': name, 'salary_from': salary_from, 'salary_to': salary_to,
+                    'currency': currency, 'gross': gross, 'url': url, 'requirement': requirement}  #, 'responsibility': responsibility
+            # print(data)
+            cls.list_vacancies.append(data)
+        # print('это список словарей cls.list_vacancies:')
+        # print(cls.list_vacancies)
+        return cls.list_vacancies
 
     def to_json(self):
-        '''Запись данных, полученных по API, в файл в формате JSON'''
-        data = [self.id, self.name, self.payment_from, self.payment_to, self.url, self.requirement] #, self.responsibility]
+        '''Записываем, полученный список словарей, в файл в формате JSON'''
+        with open(self.name_array, 'w') as f:
+            f.truncate(0)                    # очистим файл перед записью массива вакансий
+        data = self.list_vacancies #???[self.id_item, self.name, self.salary, self.url, self.requirement, self.responsibility]
+        #print('это то, что записываем в json-файл:')
+        #print(data)
         with open(self.name_array, 'w') as f:
             json.dump(data, f)
