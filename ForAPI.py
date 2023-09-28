@@ -12,12 +12,27 @@ class ForAPI(ABC):
         cls.url_site = url_site
         cls.list_vacancies = []
 
+    def make_requests(cls):
+        pass
+
+    def make_list_vacancies(cls):
+        pass
+
+    def to_json(self):
+        '''Записываем, полученный список словарей, в файл в формате JSON'''
+        with open(self.name_array, 'w') as f:
+            f.truncate(0)                    # очистим файл перед записью массива вакансий
+        data = self.list_vacancies
+        #print('это то, что записываем в json-файл:')
+        #print(data)
+        with open(self.name_array, 'w') as f:
+            json.dump(data, f)
+
 class ForAPI_hh(ForAPI):
     '''класс для API с сайта hh.ru'''
     @classmethod
     def __init__(cls, url_site):
         super().__init__(url_site)
-        #cls.url_site = url_site
         cls.list_vacancies = []
         cls.name_array = 'vacancies_hh'
 
@@ -57,23 +72,12 @@ class ForAPI_hh(ForAPI):
                 requirement = temp_dict['snippet']['requirement']
                 responsibility = temp_dict['snippet']['responsibility']
             data = {'id':id_item, 'name':name, 'salary_from':salary_from, 'salary_to':salary_to, 'currency':currency,
-                    'gross':gross, 'url':url, 'requirement':requirement, 'responsibility':responsibility}
+                    'gross':gross, 'url':url, 'requirement':requirement}
             #print(data)
             cls.list_vacancies.append(data)
         #print('это список словарей cls.list_vacancies:')
         #print(cls.list_vacancies)
         return cls.list_vacancies
-
-    def to_json(self):
-        '''Записываем, полученный список словарей, в файл в формате JSON'''
-        with open(self.name_array, 'w') as f:
-            f.truncate(0)                    # очистим файл перед записью массива вакансий
-        data = self.list_vacancies #???[self.id_item, self.name, self.salary, self.url, self.requirement, self.responsibility]
-        #print('это то, что записываем в json-файл:')
-        #print(data)
-        with open(self.name_array, 'w') as f:
-            json.dump(data, f)
-
 
 class ForAPI_superjob(ForAPI):
     '''класс для API с сайта superjob.ru'''
@@ -82,7 +86,6 @@ class ForAPI_superjob(ForAPI):
     @classmethod
     def __init__(cls, url_site):
         super().__init__(url_site)
-        # cls.url_site = url_site
         cls.list_vacancies = []
         cls.name_array = 'vacancies_superjob'
 
@@ -123,19 +126,9 @@ class ForAPI_superjob(ForAPI):
             requirement = temp_dict['candidat']
             #responsibility = temp_dict['snippet']['responsibility']
             data = {'id': id_item, 'name': name, 'salary_from': salary_from, 'salary_to': salary_to,
-                    'currency': currency, 'gross': gross, 'url': url, 'requirement': requirement}  #, 'responsibility': responsibility
+                    'currency': currency, 'gross': gross, 'url': url, 'requirement': requirement}
             # print(data)
             cls.list_vacancies.append(data)
         # print('это список словарей cls.list_vacancies:')
         # print(cls.list_vacancies)
         return cls.list_vacancies
-
-    def to_json(self):
-        '''Записываем, полученный список словарей, в файл в формате JSON'''
-        with open(self.name_array, 'w') as f:
-            f.truncate(0)                    # очистим файл перед записью массива вакансий
-        data = self.list_vacancies #???[self.id_item, self.name, self.salary, self.url, self.requirement, self.responsibility]
-        #print('это то, что записываем в json-файл:')
-        #print(data)
-        with open(self.name_array, 'w') as f:
-            json.dump(data, f)
