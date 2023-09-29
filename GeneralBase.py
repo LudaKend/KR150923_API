@@ -4,12 +4,7 @@ RATE_USD = 90
 
 class GeneralBase:
     '''класс для работы с данными о вакансиях'''
-    #name_array = 'vacancies'  #посмотрим, что приоритетней - эта переменная в классе или параметр, с которым буду вызывать метод from_json из main!!!
-    all = []
-    #name_array = 'all_vacancies'
-    name_array = 'vacancies_hh'
-
-    def __init__(self, id_item, name, salary_from, salary_to, currency, gross, url, requirement): # responsibility):
+    def __init__(self, id_item, name, salary_from, salary_to, currency, gross, url, requirement):
         self.id_item = id_item
         self.name = name
         self.salary_from = salary_from
@@ -18,9 +13,49 @@ class GeneralBase:
         self.gross = gross
         self.url = url
         self.requirement = requirement
-        #self.responsibility = responsibility
+
         self.salary_min = self.find_salary_relevant(salary_from)
         self.salary_max = self.find_salary_relevant(salary_to)
+
+    def __repr__(self):
+        return f"({self.id_item}, '{self.name}', {self.salary_min}, {self.salary_max}, '{self.url}', '{self.requirement}')"
+
+    def __str__(self):
+        return (f'ОПИСАНИЕ ВАКАНСИИ:\n {self.name}\n ТРЕБОВАНИЯ:\n {self.requirement}\n МИНИМАЛЬНЫЙ РАЗМЕР ОПЛАТЫ:'
+                f' {self.salary_min}\n МАКСИМАЛЬНЫЙ РАЗМЕР ОПЛАТЫ: {self.salary_max}')
+
+    def give_away_id_item(self):
+        return self.id_item
+
+    def give_away_name(self):
+        return self.name.lower()
+
+    def give_away_salary_min(self):
+        return self.salary_min
+
+    def give_away_salary_max(self):
+        return self.salary_max
+
+    def give_away_url(self):
+        return self.url
+
+    def give_away_requirement(self):
+        return self.requirement.lower()
+
+    @classmethod
+    def instantiate_from_json(cls, name_array):
+        cls.data_file = cls.from_json(name_array)
+        cls.list_base = []
+        for _dict in cls.data_file:
+            base = GeneralBase(_dict['id'], _dict['name'], _dict['salary_from'], _dict['salary_to'],
+                               _dict['currency'], _dict['gross'], _dict['url'],_dict['requirement'])
+            print()
+            # print('Проверяем экземпляры')
+            #print(base.__dict__)
+            print(base)  #красивый вывод для пользователя с использованием метода __str__
+            cls.list_base.append(base)  #формирую список экземпляров
+        #print(cls.list_base)
+        return cls.list_base
 
     @classmethod
     def from_json(cls, name_array='no_vacancies'):
@@ -28,31 +63,12 @@ class GeneralBase:
         if name_array == 'no_vacancies':
             raise 'файлы с вакансиями не получены'
         else:
-            with open(name_array) as f:  #encoding='cp1251'
-                #print(json.load(f))
+            with open(name_array) as f:  # encoding='cp1251'
+                # print(json.load(f))
                 cls.data_file = json.load(f)
-            #print(cls.data_file)
+                #print(cls.data_file)
             return cls.data_file
 
-    @classmethod
-    def instantiate_from_json(cls, name_array):
-        cls.data_file = cls.from_json(name_array)
-        for _dict in cls.data_file:
-            base = GeneralBase(_dict['id'], _dict['name'], _dict['salary_from'], _dict['salary_to'],
-                               _dict['currency'], _dict['gross'], _dict['url'],_dict['requirement']) #, _dict['responsibility'])
-            print()
-            print('Проверяем экземпляры')
-            print(base.__dict__)
-
-    def validate_id_item(self):
-        '''проверяем id вакансии'''
-        if type(self.id_item) == 'int':
-            return True
-
-    def validate_name(self):
-        '''проверяем name вакансии'''
-        if type(self.name) == 'str' and self.name != '':
-            return True
 
     def recount_salary(self,salary):
         '''переводим зарплату в рублевый эквивалент'''
@@ -75,6 +91,9 @@ class GeneralBase:
 
     def find_salary_relevant(self, salary):
         '''определяем значения релевантные для сравнения'''
+        if salary == None:
+            salary = 0
+
         temp_salary = self.recount_salary(salary)  #пересчитываем в рубли
         relevant_salary = self.count_salary_without_tax(temp_salary)
         return relevant_salary
@@ -84,8 +103,3 @@ class GeneralBase:
         if self.url[0:len(URL_SITE_HH)] == URL_SITE_HH:
             return True
 
-    def to_json(self):
-        '''Запись данных в файл в формате JSON'''
-        data = [self.id_item, self.name, self.salary, self.url, self.requirement, self.responsibility]
-        with open(self.name_array, 'a') as f:
-            json.dump(data, f)
