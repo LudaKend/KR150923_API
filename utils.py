@@ -16,12 +16,14 @@ def make_start_base(user_name, resourse):
         list_base = works_with_hh()
         make_user_base(user_name,resourse,list_base)
     elif resourse == 2:
-        works_with_superjob()
-        make_userbase(user_name,resourse)
+        list_base = works_with_superjob()
+        make_user_base(user_name,resourse,list_base)
     elif resourse == 3:
-        works_with_hh()
-        works_with_superjob()
-        make_user_base(user_name,resourse)
+        list_base = works_with_hh()
+        list_base_add = works_with_superjob()
+        for item in list_base_add:
+            list_base.append(item)
+        make_user_base(user_name,resourse,list_base)
 
 def works_with_hh():
     '''функция для сбора информации о вакансиях с сайта hh.ru'''
@@ -40,49 +42,69 @@ def works_with_superjob():
     site_superjob.make_requests()
     site_superjob.make_list_vacancies()
     site_superjob.to_json()
-    GeneralBase.instantiate_from_json('vacancies_superjob')  # создаём экземпляры класса из данных файла
+    list_base = GeneralBase.instantiate_from_json('vacancies_superjob')  # создаём экземпляры класса из данных файла
+    return list_base
 
-def make_user_base(user_name,resourse, list_base):
+def make_user_base(user_name,resourse,list_base):
+    list_user_base = []
     while True:
         print()
         print('Выберите опцию:\n'
-              ' 1 - сортировать по возврастанию МИНИМАЛЬНОГО РАЗМЕРА ОПЛАТЫ\n'
-              ' 2 - сортировать по возврастанию МАКСИМАЛЬНОГО РАЗМЕРА ОПЛАТЫ\n'
+              ' 1 - сортировать по возврастанию МИНИМАЛЬНОГО размера оплаты\n'
+              ' 2 - сортировать по возврастанию МАКСИМАЛЬНОГО размера оплаты\n'
               ' 3 - выбрать только те вакансии, в которых указан размер оплаты\n'
               ' 4 - выбрать вакансии с указанным словом\n'
-              ' 5 - сохранить в файл, полученный на экране список вакансий\n'
-              ' 6 - отмена предыдущих фильтраций и сортировок\n'
-              ' 0 - выход без сохранения информации\n'
-              ' 7 - выбрать вакансии с оплатой выше указанной суммы')
+              ' 5 - выбрать вакансии с оплатой выше указанной суммы\n'
+              ' 6 - возврат к исходному списку вакансий\n'
+              ' 7 - сохранить в файл, полученный на экране список вакансий\n'
+              ' 0 - выход без сохранения информации')
         option = int(input())
         if option == 0:
             print('Информация не сохранена. Всего доброго!')  # файл со списком вакансий для пользователя не создаем
             break
         elif option == 6:
+            print('ИСХОДНЫЙ ПЕРЕЧЕНЬ ВАКАНСИЙ:')
             make_start_base(user_name,resourse)  # выводим на экран исходный список вакансий
-        elif option == 5:
+            list_user_base = []
+        elif option == 7:
             #здесь надо вызвать метод из класса UserBase для сохранения экземпляров класса UserBase в файл
-            print(f'Информация о вакансиях сохранена в файл "{user_name}"')
+            if list_user_base == []:
+                user_base = UserBase(list_base)
+                user_base.to_json(user_name, resourse, list_base)
+            else:
+                user_base = UserBase(list_user_base)
+                user_base.__dict__
+                user_base.to_json(user_name, resourse, list_user_base)
+            print(f'\nИнформация о вакансиях сохранена в файл "{user_name}_{resourse}"')
+            break
         elif option == 4:
             print('Введите искомое слово:')
             user_word = input()
+            user_word_lower = user_word.lower()
             #вызываем метод из класса UserBase для фильтрации экземпляров класса UserBase по заданному слову
+            print('       ВЫБРАННЫЕ ВАКАНСИИ:')
+            user_base = UserBase(list_base)
+            user_base.print_user_list(user_base.find_word(user_word_lower))
         elif option == 3:
-            print('#вызываем метод из класса UserBase для фильтрации экземпляров класса UserBase по нулевой зарплате')
+            #вызываем метод из класса UserBase для фильтрации экземпляров класса UserBase по нулевой зарплате')
+            print('       ВЫБРАННЫЕ ВАКАНСИИ:')
             user_base = UserBase(list_base)
             user_base.print_user_list(user_base.take_non_zero())
         elif option == 2:
-            print('#вызываем метод из класса UserBase для сортировки экземпляров класса UserBase по возрастанию max зарплаты')
+            #вызываем метод из класса UserBase для сортировки экземпляров класса UserBase по возрастанию max зарплаты')
+            print('       ВЫБРАННЫЕ ВАКАНСИИ:')
             user_base = UserBase(list_base)
             user_base.print_user_list(user_base.sort_max_salary())
         elif option == 1:
-            print('#вызываем метод из класса UserBase для сортировки экземпляров класса UserBase по возрастанию min зарплаты')
+            #вызываем метод из класса UserBase для сортировки экземпляров класса UserBase по возрастанию min зарплаты')
+            print('       ВЫБРАННЫЕ ВАКАНСИИ:')
             user_base = UserBase(list_base)
             user_base.print_user_list(user_base.sort_min_salary())
-        elif option == 7:
-            print('#вызываем метод из класса UserBase для выбора экземпляров класса UserBase с min зарплатой >= указанной')
+        elif option == 5:
+            #вызываем метод из класса UserBase для выбора экземпляров класса UserBase с min зарплатой >= указанной')
             print('Введите сумму оплаты, ниже которой вакансии не рассматривать:')
             user_salary = int(input())
+            print('       ВЫБРАННЫЕ ВАКАНСИИ:')
             user_base = UserBase(list_base)
             user_base.print_user_list(user_base.take_only_big(user_salary))
         else:

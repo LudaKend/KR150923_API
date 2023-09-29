@@ -4,9 +4,6 @@ RATE_USD = 90
 
 class GeneralBase:
     '''класс для работы с данными о вакансиях'''
-    #name_array = 'all_vacancies'
-    name_array = 'vacancies_hh'  #???
-
     def __init__(self, id_item, name, salary_from, salary_to, currency, gross, url, requirement):
         self.id_item = id_item
         self.name = name
@@ -20,15 +17,30 @@ class GeneralBase:
         self.salary_min = self.find_salary_relevant(salary_from)
         self.salary_max = self.find_salary_relevant(salary_to)
 
+    def __repr__(self):
+        return f"({self.id_item}, '{self.name}', {self.salary_min}, {self.salary_max}, '{self.url}', '{self.requirement}')"
+
     def __str__(self):
         return (f'ОПИСАНИЕ ВАКАНСИИ:\n {self.name}\n ТРЕБОВАНИЯ:\n {self.requirement}\n МИНИМАЛЬНЫЙ РАЗМЕР ОПЛАТЫ:'
                 f' {self.salary_min}\n МАКСИМАЛЬНЫЙ РАЗМЕР ОПЛАТЫ: {self.salary_max}')
+
+    def give_away_id_item(self):
+        return self.id_item
+
+    def give_away_name(self):
+        return self.name.lower()
 
     def give_away_salary_min(self):
         return self.salary_min
 
     def give_away_salary_max(self):
         return self.salary_max
+
+    def give_away_url(self):
+        return self.url
+
+    def give_away_requirement(self):
+        return self.requirement.lower()
 
     @classmethod
     def instantiate_from_json(cls, name_array):
@@ -39,7 +51,7 @@ class GeneralBase:
                                _dict['currency'], _dict['gross'], _dict['url'],_dict['requirement'])
             print()
             # print('Проверяем экземпляры')
-            print(base.__dict__)
+            #print(base.__dict__)
             print(base)  #красивый вывод для пользователя с использованием метода __str__
             cls.list_base.append(base)  #формирую список экземпляров
         #print(cls.list_base)
@@ -91,8 +103,3 @@ class GeneralBase:
         if self.url[0:len(URL_SITE_HH)] == URL_SITE_HH:
             return True
 
-    def to_json(self):
-        '''Запись данных в файл в формате JSON'''
-        data = [self.id_item, self.name, self.salary, self.url, self.requirement]
-        with open(self.name_array, 'a') as f:
-            json.dump(data, f)

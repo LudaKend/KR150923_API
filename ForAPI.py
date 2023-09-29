@@ -6,7 +6,6 @@ from GeneralBase import GeneralBase
 
 class ForAPI(ABC):
     '''абстрактный класс для API'''
-
     @classmethod
     def __init__(cls, url_site):
         cls.url_site = url_site
@@ -111,20 +110,12 @@ class ForAPI_superjob(ForAPI):
             #print(temp_dict)
             id_item = temp_dict['id']
             name = temp_dict['profession']
-            # salary = temp_dict['salary']
             url = temp_dict['link']
-            # if salary == None:
-            #     salary_from = 0
-            #     salary_to = 0
-            #     currency = 'RUR'
-            #     gross = False
-            # else:
             salary_from = temp_dict['payment_from']
             salary_to = temp_dict['payment_to']
             currency = temp_dict['currency']
             gross = True
             requirement = temp_dict['candidat']
-            #responsibility = temp_dict['snippet']['responsibility']
             data = {'id': id_item, 'name': name, 'salary_from': salary_from, 'salary_to': salary_to,
                     'currency': currency, 'gross': gross, 'url': url, 'requirement': requirement}
             # print(data)
